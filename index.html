@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>图片轴对称转换工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            border-color: #999;
+        }
+        #fileInput {
+            display: none;
+        }
+        .image-comparison {
+            display: flex;
+            width: 100%;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .image-box {
+            flex: 1;
+            position: relative;
+            text-align: center;
+        }
+        .image-box img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .image-label {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            padding: 5px;
+            font-size: 14px;
+        }
+        .instructions {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        .download-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 15px;
+            display: none;
+        }
+        .download-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>图片轴对称转换工具</h1>
+        
+        <div class="upload-area" id="uploadArea">
+            <p>点击此处上传图片</p>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+        
+        <div class="image-comparison" id="imageComparison" style="display: none;">
+            <div class="image-box">
+                <div class="image-label">原始图片</div>
+                <img id="originalImage">
+            </div>
+            <div class="image-box">
+                <div class="image-label">轴对称图片</div>
+                <img id="mirroredImage">
+            </div>
+        </div>
+        
+        <button id="downloadBtn" class="download-btn">下载镜像图片</button>
+        
+        <div class="instructions">
+            <p><strong>使用说明:</strong></p>
+            <ol>
+                <li>点击上方区域选择一张图片</li>
+                <li>系统会自动生成水平轴对称(镜像)图片</li>
+                <li>左右并排显示原始图片和镜像图片</li>
+                <li>点击"下载镜像图片"按钮保存结果</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const originalImage = document.getElementById('originalImage');
+        const mirroredImage = document.getElementById('mirroredImage');
+        const imageComparison = document.getElementById('imageComparison');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    originalImage.src = event.target.result;
+                    imageComparison.style.display = 'flex';
+                    
+                    // 创建镜像图像
+                    const img = new Image();
+                    img.onload = function() {
+                        // 创建canvas来翻转图像
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        
+                        // 水平翻转
+                        ctx.translate(img.width, 0);
+                        ctx.scale(-1, 1);
+                        ctx.drawImage(img, 0, 0);
+                        
+                        mirroredImage.src = canvas.toDataURL('image/png');
+                        downloadBtn.style.display = 'block';
+                        
+                        // 设置下载功能
+                        downloadBtn.onclick = function() {
+                            const link = document.createElement('a');
+                            link.download = 'mirror-image.png';
+                            link.href = canvas.toDataURL('image/png');
+                            link.click();
+                        };
+                    };
+                    
+                    img.src = event.target.result;
+                };
+                
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+    </script>
+</body>
+</html>
